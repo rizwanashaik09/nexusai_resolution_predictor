@@ -42,7 +42,9 @@ def get_db():
 
 
 def init_db():
-    with get_db() as conn:
+     os.makedirs("models", exist_ok=True)
+     os.makedirs("logs", exist_ok=True)
+     with get_db() as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

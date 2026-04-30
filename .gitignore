@@ -1,7 +1,6 @@
 myenv/
 venv/
 __pycache__/
-*.pkl
 *.pyc
 logs/
 auth.db
