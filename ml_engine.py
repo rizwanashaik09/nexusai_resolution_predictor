@@ -85,6 +85,8 @@ def train_model(data_path="data/train_data.csv"):
 
 
 def _load_model():
+    if not os.path.exists(MODEL_PATH) or not os.path.exists(ENCODER_PATH):
+        raise FileNotFoundError("Model not trained yet. Please train the model first.")
     with open(MODEL_PATH, "rb") as f:
         clf = pickle.load(f)
     with open(ENCODER_PATH, "rb") as f:

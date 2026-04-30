@@ -16,6 +16,7 @@ from flask import (
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-prod")
 
+
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(
     filename="logs/app.log",
@@ -267,8 +268,10 @@ def api_history():
     return jsonify([dict(r) for r in rows])
 
 
-if __name__ == "__main__":
+with app.app_context():
     init_db()
+
+if __name__ == "__main__":
     print("Server running at http://localhost:5000")
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
