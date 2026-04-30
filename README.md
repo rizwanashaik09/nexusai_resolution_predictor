@@ -5,11 +5,12 @@ RandomForest, SentenceTransformers embeddings, and HuggingFace emotion detection
 
 ---
 
-
 ##  Live Demo
-[Click here to view NexusAI Live](https://nexusai-resolution-predictor.onrender.com)
+ [Click here to view NexusAI Live](https://nexusai-resolution-predictor.onrender.com)
 
 > **Note:** First load may take 30-50 seconds to wake up (free hosting). Please be patient!
+
+
 
 ## Prerequisites
 
