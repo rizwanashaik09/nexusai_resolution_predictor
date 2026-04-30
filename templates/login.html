@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexusAI — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body class="auth-body">
+
+<div class="auth-bg">
+  <div class="grid-overlay"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<div class="auth-container">
+  <div class="auth-card glass">
+    <div class="auth-logo">
+      <span class="logo-hex">⬡</span>
+      <h1>Nexus<em>AI</em></h1>
+      <p class="auth-tagline">Resolution Intelligence Platform</p>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-error">
+      <i class="fas fa-triangle-exclamation"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('login') }}" class="auth-form">
+      <div class="field-group">
+        <label>Username</label>
+        <div class="input-wrap">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" name="username" placeholder="Enter username" autocomplete="username" required/>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" name="password" placeholder="Enter password" autocomplete="current-password" required/>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary full">
+        <span>Sign In</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      No account? <a href="{{ url_for('register') }}">Create one</a>
+    </p>
+  </div>
+
+  <div class="auth-features">
+    <div class="feature-pill"><i class="fas fa-brain"></i> ML-Powered Analysis</div>
+    <div class="feature-pill"><i class="fas fa-face-smile"></i> Emotion Detection</div>
+    <div class="feature-pill"><i class="fas fa-shield-halved"></i> Risk Scoring</div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

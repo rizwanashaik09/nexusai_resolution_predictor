@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — NexusAI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <p class="page-eyebrow">Welcome back,</p>
+    <h2 class="page-title">{{ session.username }} <span class="blink-cursor">_</span></h2>
+  </div>
+  <a href="{{ url_for('predict_page') }}" class="btn-primary">
+    <i class="fas fa-bolt"></i> New Prediction
+  </a>
+</div>
+
+<!-- Stats row -->
+<div class="stats-grid">
+  <div class="stat-card glass">
+    <div class="stat-icon cyan"><i class="fas fa-comments"></i></div>
+    <div class="stat-body">
+      <div class="stat-val" data-count="{{ stats.total or 0 }}">0</div>
+      <div class="stat-label">Total Chats Analyzed</div>
+    </div>
+    <div class="stat-glow cyan"></div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+    <div class="stat-body">
+      <div class="stat-val" data-count="{{ stats.delayed or 0 }}">0</div>
+      <div class="stat-label">Delayed Cases</div>
+    </div>
+    <div class="stat-glow red"></div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon green"><i class="fas fa-circle-check"></i></div>
+    <div class="stat-body">
+      <div class="stat-val" data-count="{{ stats.on_time or 0 }}">0</div>
+      <div class="stat-label">On-Time Cases</div>
+    </div>
+    <div class="stat-glow green"></div>
+  </div>
+  <div class="stat-card glass">
+    <div class="stat-icon purple"><i class="fas fa-chart-bar"></i></div>
+    <div class="stat-body">
+      <div class="stat-val" data-count="{{ stats.runs or 0 }}">0</div>
+      <div class="stat-label">Prediction Runs</div>
+    </div>
+    <div class="stat-glow purple"></div>
+  </div>
+</div>
+
+<!-- Charts row -->
+<div class="charts-grid">
+  <div class="chart-card glass">
+    <div class="chart-header">
+      <h3>Delay Distribution</h3>
+      <span class="badge badge-cyan">Overview</span>
+    </div>
+    <div class="chart-body">
+      {% if stats.total and stats.total > 0 %}
+      <canvas id="donutChart" width="260" height="260"></canvas>
+      <div class="donut-legend">
+        <div class="legend-item"><span class="dot red"></span>Delayed ({{ stats.delayed }})</div>
+        <div class="legend-item"><span class="dot green"></span>On-Time ({{ stats.on_time }})</div>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-chart-pie"></i>
+        <p>Run a prediction to see data</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="chart-card glass">
+    <div class="chart-header">
+      <h3>Prediction History</h3>
+      <span class="badge badge-purple">Last 10 runs</span>
+    </div>
+    <div class="chart-body">
+      {% if history %}
+      <canvas id="historyChart" height="200"></canvas>
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-chart-line"></i>
+        <p>No runs yet</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Quick actions -->
+<div class="quick-actions glass">
+  <h3>Quick Actions</h3>
+  <div class="action-buttons">
+    <a href="{{ url_for('train_page') }}" class="action-btn">
+      <div class="action-icon cyan"><i class="fas fa-dumbbell"></i></div>
+      <span>Train Model</span>
+      <small>Retrain with new data</small>
+    </a>
+    <a href="{{ url_for('predict_page') }}" class="action-btn">
+      <div class="action-icon red"><i class="fas fa-bolt"></i></div>
+      <span>Run Prediction</span>
+      <small>Upload CSV file</small>
+    </a>
+    <div class="action-btn" onclick="fetchHistory()">
+      <div class="action-icon purple"><i class="fas fa-clock-rotate-left"></i></div>
+      <span>View History</span>
+      <small>Past predictions</small>
+    </div>
+  </div>
+</div>
+
+<!-- History table -->
+{% if history %}
+<div class="table-card glass">
+  <div class="table-header">
+    <h3>Recent Predictions</h3>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>File</th>
+          <th>Total</th>
+          <th>Delayed</th>
+          <th>Avg Risk</th>
+          <th>Date</th>
+          <th>Download</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in history %}
+        <tr class="table-row">
+          <td class="mono">{{ row.id }}</td>
+          <td>{{ row.filename or '—' }}</td>
+          <td><span class="badge badge-cyan">{{ row.total_chats }}</span></td>
+          <td><span class="badge badge-red">{{ row.delayed }}</span></td>
+          <td>
+            <div class="mini-risk">
+              <div class="mini-bar">
+                <div class="mini-fill" style="width:{{ row.avg_risk_score or 0 }}%; background: {{ 'var(--red)' if (row.avg_risk_score or 0) > 60 else ('var(--yellow)' if (row.avg_risk_score or 0) > 30 else 'var(--green)') }}"></div>
+              </div>
+              <span class="mono">{{ "%.1f"|format(row.avg_risk_score or 0) }}%</span>
+            </div>
+          </td>
+          <td class="mono small">{{ row.created_at[:16] if row.created_at else '—' }}</td>
+          <td>
+            <a href="{{ url_for('download_report', pred_id=row.id) }}" class="btn-icon" title="Download CSV">
+              <i class="fas fa-download"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const delayed = {{ stats.delayed or 0 }};
+  const onTime  = {{ stats.on_time or 0 }};
+  const histData = {{ history | tojson if history else '[]' }};
+
+  if (document.getElementById("donutChart")) {
+    new Chart(document.getElementById("donutChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Delayed", "On-Time"],
+        datasets: [{
+          data: [delayed, onTime],
+          backgroundColor: ["rgba(255,75,75,0.85)", "rgba(0,255,163,0.85)"],
+          borderColor: ["#ff4b4b", "#00ffa3"],
+          borderWidth: 2,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        cutout: "72%",
+        plugins: { legend: { display: false } },
+        animation: { duration: 1200, easing: "easeInOutQuart" }
+      }
+    });
+  }
+
+  if (document.getElementById("historyChart") && histData.length) {
+    const labels = histData.map(r => r.created_at ? r.created_at.slice(5,10) : "—").reverse();
+    const totals = histData.map(r => r.total_chats).reverse();
+    const delays = histData.map(r => r.delayed).reverse();
+
+    new Chart(document.getElementById("historyChart"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Total",
+            data: totals,
+            backgroundColor: "rgba(0,212,255,0.25)",
+            borderColor: "#00d4ff",
+            borderWidth: 2,
+            borderRadius: 4
+          },
+          {
+            label: "Delayed",
+            data: delays,
+            backgroundColor: "rgba(255,75,75,0.25)",
+            borderColor: "#ff4b4b",
+            borderWidth: 2,
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: "rgba(255,255,255,0.7)", font: { family: "Space Grotesk" } }
+          }
+        },
+        scales: {
+          x: { ticks: { color: "rgba(255,255,255,0.5)" }, grid: { color: "rgba(255,255,255,0.05)" } },
+          y: { ticks: { color: "rgba(255,255,255,0.5)" }, grid: { color: "rgba(255,255,255,0.05)" } }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

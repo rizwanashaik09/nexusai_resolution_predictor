@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Train Model — NexusAI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <p class="page-eyebrow">Machine Learning</p>
+    <h2 class="page-title">Train Model</h2>
+  </div>
+</div>
+
+<div class="two-col-layout">
+  <div class="train-card glass">
+    <div class="train-icon-wrap">
+      <div class="brain-anim" id="brainAnim">
+        <i class="fas fa-brain"></i>
+        <div class="pulse-ring r1"></div>
+        <div class="pulse-ring r2"></div>
+        <div class="pulse-ring r3"></div>
+      </div>
+    </div>
+
+    <div class="train-info">
+      <h3>Model Training</h3>
+      <p>Trains a RandomForest classifier using SentenceTransformer embeddings and HuggingFace emotion features extracted from your chat data.</p>
+      <ul class="feature-list">
+        <li><i class="fas fa-check-circle"></i> all-MiniLM-L6-v2 embeddings (384-dim)</li>
+        <li><i class="fas fa-check-circle"></i> Emotion classification (7 classes)</li>
+        <li><i class="fas fa-check-circle"></i> 100-tree RandomForest</li>
+        <li><i class="fas fa-check-circle"></i> 80/20 train/test split</li>
+      </ul>
+    </div>
+
+    <div class="train-prereq glass-inner">
+      <h4><i class="fas fa-folder-open"></i> Required File</h4>
+      <p>Place your training CSV at <code>data/train_data.csv</code></p>
+      <p class="hint">Required columns: <code>chat_text</code>, <code>label</code> (Delayed / On-Time)</p>
+    </div>
+
+    <button class="btn-primary full" id="trainBtn" onclick="startTraining()">
+      <i class="fas fa-play"></i> <span id="trainBtnText">Start Training</span>
+    </button>
+  </div>
+
+  <div class="train-output glass" id="trainOutput">
+    <div class="output-placeholder" id="outputPlaceholder">
+      <i class="fas fa-terminal"></i>
+      <p>Training output will appear here...</p>
+    </div>
+
+    <div id="trainingLog" style="display:none">
+      <div class="log-header">
+        <span class="log-dot green pulse"></span>
+        <span class="mono small">Training Log</span>
+      </div>
+      <div id="logLines" class="log-lines"></div>
+    </div>
+
+    <div id="metricsPanel" style="display:none" class="metrics-panel">
+      <h4>Training Results</h4>
+      <div class="metric-grid" id="metricGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="info-cards-row">
+  <div class="info-card glass">
+    <div class="info-icon cyan"><i class="fas fa-database"></i></div>
+    <div>
+      <h4>Data Format</h4>
+      <p>CSV with columns: <code>chat_text</code> (string), <code>label</code> (Delayed or On-Time)</p>
+    </div>
+  </div>
+  <div class="info-card glass">
+    <div class="info-icon purple"><i class="fas fa-clock"></i></div>
+    <div>
+      <h4>Training Time</h4>
+      <p>Depends on dataset size and whether GPU is available. Typically 1–5 minutes.</p>
+    </div>
+  </div>
+  <div class="info-card glass">
+    <div class="info-icon green"><i class="fas fa-floppy-disk"></i></div>
+    <div>
+      <h4>Model Saved</h4>
+      <p>Model saved to <code>models/rf_model.pkl</code> automatically after training.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function log(msg, type="info") {
+  const lines = document.getElementById("logLines");
+  const el = document.createElement("div");
+  el.className = `log-line log-${type}`;
+  el.innerHTML = `<span class="mono small log-ts">${new Date().toLocaleTimeString()}</span> ${msg}`;
+  lines.appendChild(el);
+  lines.scrollTop = lines.scrollHeight;
+}
+
+async function startTraining() {
+  const btn = document.getElementById("trainBtn");
+  const brain = document.getElementById("brainAnim");
+  btn.disabled = true;
+  document.getElementById("trainBtnText").textContent = "Training...";
+  btn.classList.add("loading");
+
+  document.getElementById("outputPlaceholder").style.display = "none";
+  document.getElementById("trainingLog").style.display = "block";
+  document.getElementById("metricsPanel").style.display = "none";
+  document.getElementById("logLines").innerHTML = "";
+  brain.classList.add("active");
+
+  const msgs = [
+    "Initializing SentenceTransformer...",
+    "Loading emotion classifier...",
+    "Extracting embeddings from training data...",
+    "Computing emotion features...",
+    "Building feature matrix...",
+    "Fitting RandomForest (100 estimators)...",
+    "Evaluating on test split...",
+    "Serializing model artifacts..."
+  ];
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < msgs.length) { log(msgs[i++]); }
+  }, 600);
+
+  try {
+    const res = await fetch("/api/train", { method: "POST" });
+    const data = await res.json();
+    clearInterval(interval);
+    brain.classList.remove("active");
+
+    if (data.success) {
+      log("✓ Training complete!", "success");
+      showMetrics(data.metrics);
+      showToast("Model trained successfully!", "success");
+    } else {
+      log("✗ Error: " + data.error, "error");
+      showToast(data.error, "error");
+    }
+  } catch (e) {
+    clearInterval(interval);
+    log("✗ Network error: " + e.message, "error");
+    showToast("Training failed — check server logs", "error");
+  } finally {
+    btn.disabled = false;
+    document.getElementById("trainBtnText").textContent = "Start Training";
+    btn.classList.remove("loading");
+    brain.classList.remove("active");
+  }
+}
+
+function showMetrics(m) {
+  document.getElementById("metricsPanel").style.display = "block";
+  const grid = document.getElementById("metricGrid");
+  grid.innerHTML = `
+    <div class="metric-box">
+      <div class="metric-num">${m.accuracy}%</div>
+      <div class="metric-lab">Accuracy</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-num">${m.classes.length}</div>
+      <div class="metric-lab">Classes</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-num">${m.classes.join(", ")}</div>
+      <div class="metric-lab">Labels</div>
+    </div>
+  `;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}NexusAI — Resolution Predictor{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Rajdhani:wght@400;500;600;700&display=swap"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% if session.user_id %}
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="brand-icon">⬡</span>
+    <span class="brand-name">Nexus<em>AI</em></span>
+  </div>
+  <div class="nav-links">
+    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint=='dashboard' %}active{% endif %}">
+      <i class="fas fa-chart-network"></i> Dashboard
+    </a>
+    <a href="{{ url_for('train_page') }}" class="nav-link {% if request.endpoint=='train_page' %}active{% endif %}">
+      <i class="fas fa-brain"></i> Train Model
+    </a>
+    <a href="{{ url_for('predict_page') }}" class="nav-link {% if request.endpoint=='predict_page' %}active{% endif %}">
+      <i class="fas fa-bolt"></i> Predict
+    </a>
+  </div>
+  <div class="nav-right">
+    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+      <i class="fas fa-moon" id="theme-icon"></i>
+    </button>
+    <div class="nav-user">
+      <div class="user-avatar">{{ session.username[0].upper() }}</div>
+      <span class="user-name">{{ session.username }}</span>
+    </div>
+    <a href="{{ url_for('logout') }}" class="btn-logout">
+      <i class="fas fa-power-off"></i>
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+<div class="page-wrapper">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="toast toast-{{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+
+{% if session.user_id %}
+<footer class="footer">
+  <div class="footer-inner">
+    <span class="brand-name small">Nexus<em>AI</em></span>
+    <span class="footer-copy">Resolution Delay Prediction · Powered by RandomForest & SentenceTransformers</span>
+    <span class="footer-year">© {{ now.year if now else 2025 }}</span>
+  </div>
+</footer>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>

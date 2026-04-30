@@ -1,0 +1,21 @@
+chat_text,label
+"Customer has been waiting 5 days with no response. Very frustrated.",Delayed
+"Agent resolved the issue within 30 minutes. Customer was happy.",On-Time
+"Ticket opened last Monday still unresolved. Customer called 4 times.",Delayed
+"Live chat session was smooth. Refund processed instantly.",On-Time
+"Wrong product delivered. No replacement sent after 2 weeks.",Delayed
+"Technical issue fixed remotely in 20 minutes. Agent was great.",On-Time
+"Customer escalated to manager after being ignored for 3 days.",Delayed
+"Password reset completed on first contact. Email confirmation sent.",On-Time
+"Billing error reported. Agent promised fix but never followed up.",Delayed
+"Subscription upgraded smoothly. Agent walked through every step.",On-Time
+"Customer bounced between 4 agents. Had to repeat problem each time.",Delayed
+"Complaint acknowledged in 1 hour. Full refund issued same day.",On-Time
+"Service outage reported 10 days ago. No technician visit scheduled.",Delayed
+"Onboarding completed in one session. All questions answered promptly.",On-Time
+"Agent gave wrong information twice. Customer called back 3 times.",Delayed
+"Issue resolved on first contact. Agent was polite and accurate.",On-Time
+"Customer waiting 2 weeks for callback that never came.",Delayed
+"Network issue resolved in 15 minutes. Step by step guidance given.",On-Time
+"Return label never received despite requesting it 6 times.",Delayed
+"Order delivered within 2 days. Customer extremely satisfied.",On-Time
